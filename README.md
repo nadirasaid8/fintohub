@@ -1,6 +1,6 @@
-# FINTOPIO BOT FOR FINTOPIO TELEGRAM
+# FINT*PIO BOT FOR FINT*PIO TELEGRAM
 
-Fintopio Bot is a Python-based automation tool designed to interact with the Fintopio API. This bot automates tasks such as daily check-ins, farming, and task management, streamlining your interactions with Fintopio's services.
+Fint*pio Bot is a Python-based automation tool designed to interact with the Fint*pio API. This bot automates tasks such as daily check-ins, farming, and task management, streamlining your interactions with Fint*pio's services.
 
 [TELEGRAM CHANNEL](https://t.me/Deeplchain) | [TWITTER](https://x.com/itsjaw_real)
 
@@ -12,9 +12,9 @@ UQBy7ICXV6qFGeFTRWSpnMtoH6agYF3PRa5nufcTr3GVOPri - TON
 ```
 
 ## HOW TO REGISTER 
-Fintopio is a global fintech and cryptocurrency company that has created a cryptocurrency wallet of the same name on messaging app Telegram. Steve Milton Co-Founder and CEO Fintopio is Ex-VP @binance and Ex-CMO  @bnbchain.
+Fint*pio is a global fintech and cryptocurrency company that has created a cryptocurrency wallet of the same name on messaging app Telegram. Steve Milton Co-Founder and CEO Fint*pio is Ex-VP @binance and Ex-CMO  @bnbchain.
 
- 1. Visit [Telegram Fintopio](https://fintop.io/2uN2W9eRCj)
+ 1. Visit [Telegram Fint*pio](https://fintop.io/2uN2W9eRCj)
  2. Start the bot
  3. Create a Wallet & Backup
  4. Full Post https://t.me/Deeplchain/18347
@@ -42,8 +42,8 @@ This bot is built using Python and requires several dependencies. Install them v
 1. Clone the repository:
 
     ```bash
-    git clone https://codeberg.org/nadirasaid8/fintoberg.git
-    cd fintoberg
+    git clone https://github.com/nadirasaid8/fintohub.git
+    cd fintohub
     ```
 
 2. Install the required Python packages:
@@ -65,11 +65,11 @@ This bot is built using Python and requires several dependencies. Install them v
 ## Usage
 
 1. Use PC/Laptop or Use USB Debugging Phone
-2. open the `fintopio wallet bot`
+2. open the `fint*pio wallet bot`
 3. Inspect Element `(F12)` on the keyboard
 4. at the top of the choose "`Application`" 
 5. then select "`Session Storage`" 
-6. Select the links "`fintopiowallet`" and "`tgWebAppData`"
+6. Select the links "`fint*piowallet`" and "`tgWebAppData`"
 7. Take the value part of "`tgWebAppData`"
 8. take the part that looks like this: 
 
@@ -95,7 +95,7 @@ The proxies.txt file should be in the root directory and contain a list of proxi
 ```
 
 ## RUN THE BOT
-after that run the Fintopio bot by writing the command
+after that run the Fint*pio bot by writing the command
 
 ```bash
 python main.py
