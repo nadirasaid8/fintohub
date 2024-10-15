@@ -2,7 +2,7 @@
 
 Fint*pio Bot is a Python-based automation tool designed to interact with the Fint*pio API. This bot automates tasks such as daily check-ins, farming, and task management, streamlining your interactions with Fint*pio's services.
 
-[TELEGRAM CHANNEL](https://t.me/Deeplchain) | [TWITTER](https://x.com/itsjaw_real)
+[TELEGRAM CHANNEL](https://t.me/Deeplchain) | [CONTACT](https://t.me/imspecials)
 
 ### This bot helpfull?  Please support me by buying me a coffee: 
 ```
@@ -113,6 +113,6 @@ python main.py
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ## Contact
-If you have any questions or suggestions, please feel free to contact us at [ https://t.me/DeeplChainSup ].
+If you have any questions or suggestions, please feel free to contact us at [ https://t.me/DeeplChain ].
 
  
