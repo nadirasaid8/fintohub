@@ -14,9 +14,12 @@ class Fintopio:
     def __init__(self):
         self.base_url = "https://fintopio-tg.fintopio.com/api"
         self.headers = headers()
+        self.auto_play_game = config.get('auto_play_game', False)
         self.auto_break_asteroid = config.get('auto_break_asteroid', False)
         self.auto_complete_task = config.get('auto_complete_task', False)
         self.account_delay = config.get('account_delay', 5)
+        self.max_game_play = config.get('max_game_play', 5)
+        self.game_delay = config.get('game_delay', 3)
         self.use_proxies = config.get('use_proxies', False)
         self.proxies = self.load_proxies() if self.use_proxies else []
 
@@ -239,6 +242,105 @@ class Fintopio:
         except (Exception, AttributeError) as error:
             log(mrh + f"Error claiming task: {kng}{str(error)}")
 
+    async def get_game_settings(self, token, proxy=None):
+        url = f"{self.base_url}/hold/space-tappers/game-settings"
+        headers = {
+            **self.headers,
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "Referer": "https://fintopio-tg.fintopio.com/hold/games/space-taper"
+        }
+
+        try:
+            async with aiohttp.ClientSession() as sess:
+                async with sess.get(url, headers=headers, proxy=proxy) as response:
+                    if response.status == 200:
+                        game_settings = await response.json()
+                        return game_settings
+                    else:
+                        log(mrh + f"Failed to get game settings. Status: {response.status}")
+                        return None
+        except Exception as e:
+            log(mrh + f"Error while getting game settings: {e}")
+            return None
+
+    async def play_game(self, token, proxy=None):
+        game_settings = await self.get_game_settings(token, proxy)
+        if not game_settings:
+            log(mrh + "Failed to get game settings. Aborting play.")
+            return
+
+        play_time = random.randint(15, 32) 
+        score = self.calculate_score(play_time, game_settings)
+
+        await countdown_timer(play_time)
+        await self.submit_score(token, score, proxy)
+
+    async def get_game_settings(self, token, proxy=None):
+        url = f"{self.base_url}/hold/space-tappers/game-settings"
+        headers = {
+            **self.headers,
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "Referer": "https://fintopio-tg.fintopio.com/hold/games/space-taper"
+        }
+
+        try:
+            async with aiohttp.ClientSession() as sess:
+                async with sess.get(url, headers=headers, proxy=proxy) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        log(mrh + f"Failed to get game settings. Status: {response.status}")
+                        return None
+        except Exception as e:
+            log(mrh + f"Error while getting game settings: {e}")
+            return None
+
+    def calculate_score(self, play_time, game_settings):
+        if play_time >= 30:
+            return random.randint(800, game_settings.get("maxScore", 1000))
+        elif play_time >= 20:
+            return random.randint(500, 799)
+        else:
+            return random.randint(130, 499)
+
+    async def submit_score(self, token, score, proxy=None):
+        payload = {"score": score}
+        url = f"{self.base_url}/hold/space-tappers/add-new-result"
+        headers = {
+            **self.headers,
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "origin": "https://fintopio-tg.fintopio.com",
+            "Referer": "https://fintopio-tg.fintopio.com/hold/games/space-taper"
+        }
+
+        try:
+            async with aiohttp.ClientSession() as sess:
+                async with sess.post(url, headers=headers, json=payload, proxy=proxy) as response:
+                    if response.status == 201:
+                        log(hju + f"Game played successfully. Score: {pth}{score}")
+                        reward = self.calculate_reward(score)
+                        log(hju + f"Reward: {pth}{reward}0 {hju}diamonds!")
+                    elif response.status == 500:
+                        log(bru + f"Failed to play game - internal server error")
+                    else:
+                        log(mrh + f"Failed to play game. Response: {await response.text()}")
+        except Exception as e:
+            log(mrh + f"Error while playing game: {e}")
+
+    def calculate_reward(self, score):
+        return 1000 if score == 100 else score 
+
+    async def auto_play(self, token):
+        for i in range(self.max_game_play):
+            log(hju + f"Starting game {pth}{i + 1}/{self.max_game_play}...")
+            await self.play_game(token)
+
+            if i < self.max_game_play - 1:
+                await asyncio.sleep(self.game_delay)
+
     def calculate_wait_time(self, first_account_finish_time):
         if not first_account_finish_time:
             return None
@@ -260,15 +362,17 @@ class Fintopio:
         log_line()
 
         while True:
-            try:
-                for i, user_data in enumerate(users):
+            for i, user_data in enumerate(users):
+                try:
                     log(hju + f"Account: {bru}{i + 1}/{len(users)}")
                     proxy = None
+
                     if self.use_proxies and self.proxies:
                         proxy = self.proxies[proxy_index]
                         proxy_host = proxy.split('@')[-1]
                         log(hju + f"Proxy: {pth}{proxy_host}")
                         proxy_index = (proxy_index + 1) % len(self.proxies)
+
                     log(htm + "~" * 38)
                     token = await self.auth(user_data, proxy)
                     if token:
@@ -276,10 +380,12 @@ class Fintopio:
                         if profile:
                             if 'profile' in profile and 'telegramUsername' in profile['profile']:
                                 username = profile['profile']['telegramUsername']
-                                balance = profile['balance'].get('balance', 'N/A') 
+                                balance = profile['balance'].get('balance', 'N/A')
                                 log(hju + f"Username: {pth}{username}")
                                 log(hju + f"Balance: {pth}{balance}")
+
                             await self.check_in_daily(token)
+
                             if self.auto_break_asteroid:
                                 diamond = await self.get_diamond_info(token, proxy)
                                 if diamond['state'] == 'available':
@@ -335,23 +441,31 @@ class Fintopio:
                                             log(hju + f"Task {bru}{slug}{hju} Skipping...")
                                         else:
                                             log(hju + f"Verifying task {bru}{slug}{hju} with status {pth}{status}!")
+                                    
+                            if self.auto_play_game:
+                                await self.auto_play(token)
 
                     log_line()
                     await countdown_timer(self.account_delay)
 
-                wait_time = self.calculate_wait_time(first_account_finish_time)
-                if wait_time and wait_time > 0:
-                    await countdown_timer(int(wait_time / 1000))
-                else:
-                    log(bru + f"Continuing loop immediately.")
-                    log(htm + "~" * 38)
-                    await countdown_timer(self.account_delay)
+                except (ValueError, AttributeError, KeyError, aiohttp.ClientError) as e:
+                    log(f"An error occurred while processing account {i + 1}:")
+                    log(f"Error: {str(e)}")
+                    await asyncio.sleep(5)
+                    continue
+                except Exception as e:
+                    log(f"An unexpected error occurred check last.log!")
+                    log(f"Error: {str(e)}")
+                    await asyncio.sleep(5)
+                    continue
 
-            except (ValueError, AttributeError, KeyError, aiohttp.ClientError) as e:
-                log(f"An error occured check last.log!")
-                log_error(f"{str(e)}")
-                await asyncio.sleep(5)
-            except Exception as e:
-                log(f"An error occured check last.log!")
-                log_error(f"{str(e)}")
-                await asyncio.sleep(5) 
+            proxy_index = 0
+            
+            wait_time = self.calculate_wait_time(first_account_finish_time)
+            if wait_time and wait_time > 0:
+                await countdown_timer(int(wait_time / 1000))
+            else:
+                log(bru + f"Continuing loop immediately.")
+                log(htm + "~" * 38)
+                await countdown_timer(self.account_delay)
+

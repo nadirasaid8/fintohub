@@ -27,6 +27,7 @@ Fint*pio is a global fintech and cryptocurrency company that has created a crypt
 - **Profile Management:** Fetch and display username and balance.
 - **Farming Automation:** Start, monitor, and claim farming rewards with ease.
 - **Task Management:** Automatically start, verify, and claim tasks for diamond rewards.
+- **Play Space Tapper Game:** Automatically play the Space Tapper Game. `NEW`
 - **Diamond Collection:** Automate diamond collection tasks and monitor next available timings.
 
 ## Requirements
@@ -56,6 +57,9 @@ This bot is built using Python and requires several dependencies. Install them v
     ```json
         {
             "use_proxies": false,
+            "auto_play_game": false,
+            "max_game_play": 5,
+            "game_delay": 3,
             "auto_break_asteroid": false,
             "auto_complete_task": false,
             "account_delay": 5
