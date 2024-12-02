@@ -24,7 +24,7 @@ def _banner():
  ██║   ██║   ███████║╚█████╔╝██║  ██║╚███╔███╔╝
  ╚═╝   ╚═╝   ╚══════╝ ╚════╝ ╚═╝  ╚═╝ ╚══╝╚══╝  """ 
     print(Fore.GREEN + Style.BRIGHT + banner + Style.RESET_ALL)
-    print(hju + f" Fintopio Wallet Auto Bot")
+    print(hju + f" Fintopio Wallet Auto Bot -- v2.1")
     print(mrh + f" FREE TO USE = join us on {pth}@DEEPLCHAIN")
     print(mrh + f" before start please '{hju}git pull{mrh}' to update bot")
 

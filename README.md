@@ -55,15 +55,17 @@ This bot is built using Python and requires several dependencies. Install them v
 
 3. Create and configure your `config.json` file to manage bot settings.
     ```json
-        {
-            "use_proxies": false,
-            "auto_play_game": false,
-            "max_game_play": 5,
-            "game_delay": 3,
-            "auto_break_asteroid": false,
-            "auto_complete_task": false,
-            "account_delay": 5
-        }
+    {
+        "use_proxies": false,
+        "auto_break_asteroid": false,
+        "auto_complete_task": false,
+        "auto_play_game": false,
+        "game_safe_mode": false,
+        "min_game_play": 3,
+        "max_game_play": 7,
+        "game_delay": 3,
+        "account_delay": 5
+    }
     ```
 
 ## Usage

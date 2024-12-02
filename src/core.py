@@ -15,10 +15,12 @@ class Fintopio:
         self.base_url = "https://fintopio-tg.fintopio.com/api"
         self.headers = headers()
         self.auto_play_game = config.get('auto_play_game', False)
+        self.game_safe_mode = config.get('game_safe_mode', False)
         self.auto_break_asteroid = config.get('auto_break_asteroid', False)
         self.auto_complete_task = config.get('auto_complete_task', False)
         self.account_delay = config.get('account_delay', 5)
-        self.max_game_play = config.get('max_game_play', 5)
+        self.min_game_play = config.get('min_game_play', 3)
+        self.max_game_play = config.get('max_game_play', 7)
         self.game_delay = config.get('game_delay', 3)
         self.use_proxies = config.get('use_proxies', False)
         self.proxies = self.load_proxies() if self.use_proxies else []
@@ -255,8 +257,7 @@ class Fintopio:
             async with aiohttp.ClientSession() as sess:
                 async with sess.get(url, headers=headers, proxy=proxy) as response:
                     if response.status == 200:
-                        game_settings = await response.json()
-                        return game_settings
+                        return await response.json()
                     else:
                         log(mrh + f"Failed to get game settings. Status: {response.status}")
                         return None
@@ -270,43 +271,37 @@ class Fintopio:
             log(mrh + "Failed to get game settings. Aborting play.")
             return
 
-        play_time = random.randint(15, 32) 
-        score = self.calculate_score(play_time, game_settings)
-
+        score = random.randint(5, game_settings.get("maxScore", 1000))
+        play_time = self.calculate_play_time_from_score(score, game_settings)
         await countdown_timer(play_time)
-        await self.submit_score(token, score, proxy)
+        await self.submit_score(token, score, play_time, proxy)
 
-    async def get_game_settings(self, token, proxy=None):
-        url = f"{self.base_url}/hold/space-tappers/game-settings"
-        headers = {
-            **self.headers,
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Referer": "https://fintopio-tg.fintopio.com/hold/games/space-taper"
-        }
+    def calculate_play_time_from_score(self, score, game_settings):
+        max_score = game_settings.get("maxScore", 1000)
+        min_score = 5
+        min_play_time = 10 
+        max_play_time = 120 
 
-        try:
-            async with aiohttp.ClientSession() as sess:
-                async with sess.get(url, headers=headers, proxy=proxy) as response:
-                    if response.status == 200:
-                        return await response.json()
-                    else:
-                        log(mrh + f"Failed to get game settings. Status: {response.status}")
-                        return None
-        except Exception as e:
-            log(mrh + f"Error while getting game settings: {e}")
-            return None
+        base_score = 84
+        base_time = 75 
 
-    def calculate_score(self, play_time, game_settings):
-        if play_time >= 30:
-            return random.randint(800, game_settings.get("maxScore", 1000))
-        elif play_time >= 20:
-            return random.randint(500, 799)
+        if score == base_score:
+            play_time = base_time
         else:
-            return random.randint(130, 499)
+            play_time = min_play_time + (score - min_score) * (max_play_time - min_play_time) / (max_score - min_score)
+        
+        play_time = min(play_time, max_play_time)
+        
+        return round(play_time)
 
-    async def submit_score(self, token, score, proxy=None):
-        payload = {"score": score}
+    async def submit_score(self, token, score, play_time, proxy=None):
+        if self.game_safe_mode:
+            score_to_submit = int(str(score)[:2])
+        else:
+            score_to_submit = score
+            
+
+        payload = {"score": score_to_submit}
         url = f"{self.base_url}/hold/space-tappers/add-new-result"
         headers = {
             **self.headers,
@@ -320,22 +315,23 @@ class Fintopio:
             async with aiohttp.ClientSession() as sess:
                 async with sess.post(url, headers=headers, json=payload, proxy=proxy) as response:
                     if response.status == 201:
-                        log(hju + f"Game played successfully. Score: {pth}{score}")
-                        reward = self.calculate_reward(score)
-                        log(hju + f"Reward: {pth}{reward}0 {hju}diamonds!")
-                    elif response.status == 500:
-                        log(bru + f"Failed to play game - internal server error")
+                        log(hju + f"Game played successfully.")
+                        reward = self.calculate_reward(score_to_submit)
+                        log(hju + f"Score: {pth}{score_to_submit} {hju}| Reward: {pth}{reward}0 {hju}diamonds!")
+                    elif response.status in [500, 502]:
+                        log(mrh + f"Failed to play game - internal server error")
                     else:
                         log(mrh + f"Failed to play game. Response: {await response.text()}")
         except Exception as e:
             log(mrh + f"Error while playing game: {e}")
 
     def calculate_reward(self, score):
-        return 1000 if score == 100 else score 
+        return 1000 if score == 100 else score
 
     async def auto_play(self, token):
-        for i in range(self.max_game_play):
-            log(hju + f"Starting game {pth}{i + 1}/{self.max_game_play}...")
+        game_to_play = random.randint(self.min_game_play, self.max_game_play)
+        for i in range(game_to_play):
+            log(hju + f"Starting game {pth}{i + 1}/{game_to_play}")
             await self.play_game(token)
 
             if i < self.max_game_play - 1:
@@ -347,8 +343,8 @@ class Fintopio:
         now = datetime.now()
         finish_time = datetime.fromtimestamp(first_account_finish_time / 1000)
         duration = (finish_time - now).total_seconds()
-        return duration * 1000  
-
+        return duration * 1000
+    
     async def main(self):
         log_line()
         proxy_index = 0
